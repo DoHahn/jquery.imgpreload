@@ -12,7 +12,8 @@ The following are the callbacks provided, you can change them globally or overri
 
     $.fn.imgpreload.defaults =
     {
-        each: null // callback invoked when each image in a group loads
+        before: null // callback invoked before the first image loads
+        , each: null // callback invoked when each image in a group loads
         , all: null // callback invoked when when the entire group of images has loaded
     };
 
@@ -30,6 +31,10 @@ $('#content img').imgpreload(function()
 ```
 $('#content img').imgpreload
 ({
+    before: function()
+    {
+      // callback executes before the first image loads
+    },
     each: function()
     {
         // this = dom image object
@@ -66,6 +71,10 @@ $.imgpreload(['/images/a.gif','/images/b.gif'],function()
 ```
 $.imgpreload(['/images/a.gif','/images/b.gif'],
 {
+    before: function()
+    {
+      // callback executes before the first image loads
+    },
     each: function()
     {
         // this = dom image object
