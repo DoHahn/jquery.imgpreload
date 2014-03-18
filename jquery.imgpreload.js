@@ -33,122 +33,133 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 if ('undefined' != typeof jQuery)
 {
-	(function($){
+  (function($){
 
-		// extend jquery (because i love jQuery)
-		$.imgpreload = function (imgs,settings)
-		{
-			settings = $.extend({},$.fn.imgpreload.defaults,(settings instanceof Function)?{all:settings}:settings);
+    // extend jquery (because i love jQuery)
+    $.imgpreload = function (imgs,settings)
+    {
+      settings = $.extend({},$.fn.imgpreload.defaults,(settings instanceof Function)?{all:settings}:settings);
+      if(imgs.length > 0 && settings.before instanceof Function) {
+        settings.before.call();
+      }
+      // use of typeof required
+      // https://developer.mozilla.org/En/Core_JavaScript_1.5_Reference/Operators/Special_Operators/Instanceof_Operator#Description
+      if ('string' == typeof imgs) { imgs = new Array(imgs); }
 
-			// use of typeof required
-			// https://developer.mozilla.org/En/Core_JavaScript_1.5_Reference/Operators/Special_Operators/Instanceof_Operator#Description
-			if ('string' == typeof imgs) { imgs = new Array(imgs); }
+      var loaded = new Array();
 
-			var loaded = new Array();
+      $.each(imgs,function(i,elem)
+      {
+        var img = new Image(),
+            url = elem,
+            img_obj = img,
+            $elem = '';
 
-			$.each(imgs,function(i,elem)
-			{
-				var img = new Image();
+        if ('string' != typeof elem)
+        {
+          $elem = $(elem)
+          url = $(elem).attr('src') || $(elem).css('background-image').replace(/^url\((?:"|')?(.*)(?:'|")?\)$/mg, "$1");
 
-				var url = elem;
+          img_obj = elem;
+        }
 
-				var img_obj = img;
+        $(img).bind('load error', function(e)
+        {
+          loaded.push(img_obj);
 
-				if ('string' != typeof elem)
-				{
-					url = $(elem).attr('src') || $(elem).css('background-image').replace(/^url\((?:"|')?(.*)(?:'|")?\)$/mg, "$1");
+          $.data(img_obj, 'loaded', ('error'==e.type)?false:true);
 
-					img_obj = elem;
-				}
+          if (settings.each instanceof Function) { settings.each.call(img_obj); }
 
-				$(img).bind('load error', function(e)
-				{
-					loaded.push(img_obj);
+          // http://jsperf.com/length-in-a-variable
+          if (loaded.length>=imgs.length && settings.all instanceof Function) { settings.all.call(loaded); }
 
-					$.data(img_obj, 'loaded', ('error'==e.type)?false:true);
-					
-					if (settings.each instanceof Function) { settings.each.call(img_obj); }
+          $(this).unbind('load error');
+        });
 
-					// http://jsperf.com/length-in-a-variable
-					if (loaded.length>=imgs.length && settings.all instanceof Function) { settings.all.call(loaded); }
+        img.src = url;
+      });
+    };
 
-					$(this).unbind('load error');
-				});
+    $.fn.imgpreload = function(settings)
+    {
+      $.imgpreload(this,settings);
 
-				img.src = url;
-			});
-		};
+      return this;
+    };
 
-		$.fn.imgpreload = function(settings)
-		{
-			$.imgpreload(this,settings);
+    $.fn.imgpreload.defaults =
+    {
+      before: null // callback invoked before anything is done
+      , each: null // callback invoked when each image in a group loads
+      , all: null // callback invoked when when the entire group of images has loaded
+    };
 
-			return this;
-		};
-
-		$.fn.imgpreload.defaults =
-		{
-			each: null // callback invoked when each image in a group loads
-			, all: null // callback invoked when when the entire group of images has loaded
-		};
-
-	})(jQuery);
+  })(jQuery);
 }
 
 /*
 
-	Usage:
+  Usage:
 
-	$('#content img').imgpreload(function()
-	{
-		// this = array of dom image objects
-		// callback executes when all images are loaded
-	});
+  $('#content img').imgpreload(function()
+  {
+    // this = array of dom image objects
+    // callback executes when all images are loaded
+  });
 
-	$('#content img').imgpreload
-	({
-		each: function()
-		{
-			// this = dom image object
-			// check for success with: $(this).data('loaded')
-			// callback executes when each image loads
-		},
-		all: function()
-		{
-			// this = array of dom image objects
-			// check for success with: $(this[i]).data('loaded')
-			// callback executes when all images are loaded
-		}
-	});
+  $('#content img').imgpreload
+  ({
+    before: function()
+    {
+      // callback executes before the first image loads
+    },
+    each: function()
+    {
+      // this = dom image object
+      // check for success with: $(this).data('loaded')
+      // callback executes when each image loads
+    },
+    all: function()
+    {
+      // this = array of dom image objects
+      // check for success with: $(this[i]).data('loaded')
+      // callback executes when all images are loaded
+    }
+  });
 
-	$.imgpreload('/images/a.gif',function()
-	{
-		// this = array of dom image objects
-		// check for success with: $(this[i]).data('loaded')
-		// callback
-	});
+  $.imgpreload('/images/a.gif',function()
+  {
+    // this = array of dom image objects
+    // check for success with: $(this[i]).data('loaded')
+    // callback
+  });
 
-	$.imgpreload(['/images/a.gif','/images/b.gif'],function()
-	{
-		// this = array of dom image objects
-		// check for success with: $(this[i]).data('loaded')
-		// callback executes when all images are loaded
-	});
+  $.imgpreload(['/images/a.gif','/images/b.gif'],function()
+  {
+    // this = array of dom image objects
+    // check for success with: $(this[i]).data('loaded')
+    // callback executes when all images are loaded
+  });
 
-	$.imgpreload(['/images/a.gif','/images/b.gif'],
-	{
-		each: function()
-		{
-			// this = dom image object
-			// check for success with: $(this).data('loaded')
-			// callback executes on every image load
-		},
-		all: function()
-		{
-			// this = array of dom image objects
-			// check for success with: $(this[i]).data('loaded')
-			// callback executes when all images are loaded
-		}
-	});
+  $.imgpreload(['/images/a.gif','/images/b.gif'],
+  {
+    before: function()
+    {
+      // callback executes before the first image loads
+    },
+    each: function()
+    {
+      // this = dom image object
+      // check for success with: $(this).data('loaded')
+      // callback executes on every image load
+    },
+    all: function()
+    {
+      // this = array of dom image objects
+      // check for success with: $(this[i]).data('loaded')
+      // callback executes when all images are loaded
+    }
+  });
 
 */
