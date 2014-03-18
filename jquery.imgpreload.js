@@ -3,7 +3,7 @@
 
 Copyright (c) 2009 Dimas Begunoff, http://www.farinspace.com
 
-https://github.com/farinspace/jquery.imgpreload
+https://github.com/DoHahn/jquery.imgpreload
 
 Licensed under the MIT license
 http://en.wikipedia.org/wiki/MIT_License
